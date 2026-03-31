@@ -222,12 +222,12 @@ CREATE POLICY "point_settings_super_admin_write" ON public.point_settings FOR AL
 -- Insert offices (Tehran and Karaj)
 INSERT INTO public.offices (name, city, address, phone, available_days) 
 VALUES 
-  ('مطب تهران', 'تهران', 'تهران، خیابان ولیعصر', '021-12345678', ARRAY['Wednesday'])
+  ('مطب تهران', 'تهران', 'سعادت آباد - بلوار کوهستان - رو به روی ایال - پلاک ۱۱', '۰۹۱۳۰۳۰۱۹۱۹', ARRAY['Wednesday'])
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.offices (name, city, address, phone, available_days) 
 VALUES 
-  ('مطب کرج', 'کرج', 'کرج، خیابان طالقانی', '026-12345678', ARRAY['Saturday', 'Sunday', 'Tuesday'])
+  ('مطب کرج', 'کرج', 'چهاره طالقانی به سمت میدان شهدا - برج آراد - طبقه هشتم - واحد ۸۰۳', '۰۹۹۱۱۳۲۰۰۳۰', ARRAY['Saturday', 'Sunday', 'Tuesday'])
 ON CONFLICT DO NOTHING;
 
 -- Insert default point settings

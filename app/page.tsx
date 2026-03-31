@@ -120,11 +120,11 @@ export default function Home() {
             <CardContent className="space-y-4">
               <div>
                 <p className="font-semibold">نشانی:</p>
-                <p className="text-muted-foreground">سعادت آباد - خیابان کوهستان - رو به روی اوال - پلاک ۱۱</p>
+                <p className="text-muted-foreground">سعادت آباد - بلوار کوهستان - رو به روی ایال - پلاک ۱۱</p>
               </div>
               <div>
                 <p className="font-semibold">تلفن:</p>
-                <p className="text-muted-foreground">021-12345678</p>
+                <p className="text-muted-foreground">۰۹۱۳۰۳۰۱۹۱۹</p>
               </div>
               <div>
                 <p className="font-semibold">روزهای کاری:</p>
@@ -140,11 +140,11 @@ export default function Home() {
             <CardContent className="space-y-4">
               <div>
                 <p className="font-semibold">نشانی:</p>
-                <p className="text-muted-foreground">خیابان بهشتی به سمت میدان شهدا - برج آراد - طبقه هشتم - واحد ۸۰۳</p>
+                <p className="text-muted-foreground">چهاره طالقانی به سمت میدان شهدا - برج آراد - طبقه هشتم - واحد ۸۰۳</p>
               </div>
               <div>
                 <p className="font-semibold">تلفن:</p>
-                <p className="text-muted-foreground">026-12345678</p>
+                <p className="text-muted-foreground">۰۹۹۱۱۳۲۰۰۳۰</p>
               </div>
               <div>
                 <p className="font-semibold">روزهای کاری:</p>
