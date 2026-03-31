@@ -120,7 +120,7 @@ export default function Home() {
             <CardContent className="space-y-4">
               <div>
                 <p className="font-semibold">نشانی:</p>
-                <p className="text-muted-foreground">تهران، خیابان ولیعصر</p>
+                <p className="text-muted-foreground">سعادت آباد - خیابان کوهستان - رو به روی اوال - پلاک ۱۱</p>
               </div>
               <div>
                 <p className="font-semibold">تلفن:</p>
@@ -140,7 +140,7 @@ export default function Home() {
             <CardContent className="space-y-4">
               <div>
                 <p className="font-semibold">نشانی:</p>
-                <p className="text-muted-foreground">کرج، خیابان طالقانی</p>
+                <p className="text-muted-foreground">خیابان بهشتی به سمت میدان شهدا - برج آراد - طبقه هشتم - واحد ۸۰۳</p>
               </div>
               <div>
                 <p className="font-semibold">تلفن:</p>
