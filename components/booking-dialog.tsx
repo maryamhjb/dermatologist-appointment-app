@@ -182,9 +182,28 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
     const todayNoon = new Date(todayGreg.getFullYear(), todayGreg.getMonth(), todayGreg.getDate(), 12, 0, 0)
     const endDate = new Date(todayNoon)
     endDate.setDate(endDate.getDate() + 56)
+    
+    const dayOfWeek = greg.getDay()
+    const clinicDays = CLINICS[selectedClinic].days
+    const inRange = greg >= todayNoon && greg <= endDate
+    const isClinicDay = clinicDays.includes(dayOfWeek)
+    
+    console.log("[v0] isAvailable:", {
+      jalali: `${calYear}/${calMonth}/${jd}`,
+      gregorian: `${gy}/${gm}/${gd}`,
+      gregDate: greg.toISOString(),
+      todayNoon: todayNoon.toISOString(),
+      endDate: endDate.toISOString(),
+      dayOfWeek,
+      clinicDays,
+      inRange,
+      isClinicDay,
+      result: inRange && isClinicDay
+    })
+    
     if (greg < todayNoon || greg > endDate) return false
     // getDay(): 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
-    return CLINICS[selectedClinic].days.includes(greg.getDay())
+    return clinicDays.includes(dayOfWeek)
   }
 
   function isSelected(jd: number): boolean {
