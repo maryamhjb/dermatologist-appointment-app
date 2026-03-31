@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Logo } from '@/components/logo'
 import { BookingDialog } from '@/components/booking-dialog'
+import { PricingTabs } from '@/components/pricing-tabs'
 
 export default function Home() {
   const [bookingOpen, setBookingOpen] = useState(false)
@@ -88,16 +89,7 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>خدمات متنوع</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                انواع خدمات درماتولوژی و زیبایی با قیمت‌های مشخص
-              </CardDescription>
-            </CardContent>
-          </Card>
+          <PricingTabs />
 
           <Card>
             <CardHeader>
