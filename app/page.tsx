@@ -124,7 +124,7 @@ export default function Home() {
               </div>
               <div>
                 <p className="font-semibold">تلفن:</p>
-                <p className="text-muted-foreground">۰۹۱۳۰۳۰۱۹۱۹</p>
+                <p className="text-muted-foreground">۰۹۳۰۳۰۱۹۱۰۹</p>
               </div>
               <div>
                 <p className="font-semibold">روزهای کاری:</p>

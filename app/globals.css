@@ -1,5 +1,4 @@
 @import 'tailwindcss';
-@import 'tw-animate-css';
 
 :root {
   --background: #FAF7F2;
@@ -72,7 +71,7 @@
   --sidebar-ring: #C94040;
 }
 
-@theme inline {
+@theme {
   --font-sans: system-ui, -apple-system, sans-serif;
   --font-mono: 'Geist Mono', monospace;
 }
