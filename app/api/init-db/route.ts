@@ -161,7 +161,7 @@ export async function POST() {
     const { error: seedError } = await supabase.from('offices').insert([
       {
         id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        name: 'مطب تهران',
+        name: 'کلینیک تهران',
         city: 'تهران',
         address: 'تهران، خیابان ولیعصر',
         phone: '021-12345678',

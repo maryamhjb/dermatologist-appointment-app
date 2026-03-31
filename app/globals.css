@@ -20,11 +20,6 @@
   --border: #4A3F37;
 }
 
-@theme {
-  --color-border: var(--border);
-  --color-ring: var(--primary);
-}
-
 html {
   direction: rtl;
 }
