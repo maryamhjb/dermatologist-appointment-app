@@ -16,7 +16,8 @@ export function Logo({ href = '/', showText = true, className = '' }: LogoProps)
           alt="Dr. Maryam Logo"
           width={56}
           height={56}
-          className="object-contain"
+          className="object-contain w-full h-full"
+          style={{ width: 'auto', height: 'auto' }}
           priority
         />
       </div>

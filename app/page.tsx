@@ -123,7 +123,7 @@ export default function Home() {
             <CardContent className="space-y-4">
               <div>
                 <p className="font-semibold">نشانی:</p>
-                <p className="text-muted-foreground" suppressHydrationWarning>{'سعادت آباد - بلوار کوهستان - رو به روی اپال - پلاک ۱۱'}</p>
+                <p className="text-muted-foreground">سعادت آباد - بلوار کوهستان - رو به روی ایال - پلاک ۱۱</p>
               </div>
               <div>
                 <p className="font-semibold">تلفن:</p>
