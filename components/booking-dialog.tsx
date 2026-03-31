@@ -11,13 +11,37 @@ interface BookingDialogProps {
 
 type Clinic = 'tehran' | 'karaj'
 
-const CLINICS = {
+// Generate 15-minute time slots between startTime and endTime inclusive
+function generateTimeSlots(start: string, end: string, stepMinutes: number): string[] {
+  const slots: string[] = []
+  const [sh, sm] = start.split(':').map(Number)
+  const [eh, em] = end.split(':').map(Number)
+  let totalStart = sh * 60 + sm
+  const totalEnd = eh * 60 + em
+  while (totalStart <= totalEnd) {
+    const h = Math.floor(totalStart / 60)
+    const m = totalStart % 60
+    slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`)
+    totalStart += stepMinutes
+  }
+  return slots
+}
+
+const CLINICS: Record<Clinic, {
+  label: string
+  days: number[]
+  daysLabel: string
+  address: string
+  phone: string
+  timeSlots: string[]
+}> = {
   tehran: {
     label: 'کلینیک تهران',
-    days: [3], // Wednesday = 3 (0=Sun, 1=Mon, ..., 3=Wed)
+    days: [3], // Wednesday in JS: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
     daysLabel: 'چهارشنبه‌ها',
     address: 'سعادت آباد - بلوار کوهستان - رو به روی ایال - پلاک ۱۱',
     phone: '۰۹۳۰۳۰۱۹۱۰۹',
+    timeSlots: generateTimeSlots('14:30', '20:30', 15),
   },
   karaj: {
     label: 'مطب کرج',
@@ -25,6 +49,7 @@ const CLINICS = {
     daysLabel: 'شنبه، یکشنبه و سه‌شنبه',
     address: 'چهاراه طالقانی به سمت میدان شهدا - برج آراد - طبقه هشتم - واحد ۸۰۳',
     phone: '۰۹۹۱۱۳۲۰۰۳۰',
+    timeSlots: generateTimeSlots('09:00', '13:00', 15),
   },
 }
 
@@ -41,7 +66,7 @@ function toFarsiNumber(n: number | string): string {
   return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[+d])
 }
 
-// Jalali to Gregorian conversion (built-in)
+// Jalali to Gregorian conversion
 function jalaliToGregorian(jy: number, jm: number, jd: number): { gy: number; gm: number; gd: number } {
   const jy1 = jy - 979
   const jm1 = jm - 1
@@ -64,7 +89,7 @@ function jalaliToGregorian(jy: number, jm: number, jd: number): { gy: number; gm
   return { gy, gm, gd }
 }
 
-// Gregorian to Jalali conversion (built-in)
+// Gregorian to Jalali conversion
 function gregorianToJalali(gy: number, gm: number, gd: number): { jy: number; jm: number; jd: number } {
   const gy1 = gy - 1600
   const gm1 = gm - 1
@@ -105,7 +130,6 @@ function gregorianToJalali(gy: number, gm: number, gd: number): { jy: number; jm
 function jalaliMonthLength(jy: number, jm: number): number {
   if (jm <= 6) return 31
   if (jm <= 11) return 30
-  // Esfand (month 12)
   const isLeap = ((jy - 474) % 2820 + 2820) % 2820
   const cycle = Math.floor(isLeap / 2820)
   const rem = isLeap % 2820
@@ -115,9 +139,10 @@ function jalaliMonthLength(jy: number, jm: number): number {
 }
 
 export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
-  const [step, setStep] = useState<'clinic' | 'date'>('clinic')
+  const [step, setStep] = useState<'clinic' | 'date' | 'time'>('clinic')
   const [selectedClinic, setSelectedClinic] = useState<Clinic | null>(null)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [selectedTime, setSelectedTime] = useState<string | null>(null)
 
   const todayGreg = new Date()
   todayGreg.setHours(0, 0, 0, 0)
@@ -128,6 +153,7 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
   function handleClinicSelect(clinic: Clinic) {
     setSelectedClinic(clinic)
     setSelectedDate(null)
+    setSelectedTime(null)
     setCalYear(todayJalali.jy)
     setCalMonth(todayJalali.jm)
     setStep('date')
@@ -135,6 +161,7 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
 
   function handleDateSelect(jy: number, jm: number, jd: number) {
     setSelectedDate(`${jy}/${jm}/${jd}`)
+    setSelectedTime(null)
   }
 
   function prevMonth() {
@@ -150,15 +177,14 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
   function isAvailable(jd: number): boolean {
     if (!selectedClinic) return false
     const { gy, gm, gd } = jalaliToGregorian(calYear, calMonth, jd)
-    const greg = new Date(gy, gm - 1, gd)
-    greg.setHours(0, 0, 0, 0)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const endDate = new Date(today)
-    endDate.setDate(endDate.getDate() + 56)
-    
-    if (greg < today || greg > endDate) return false
-    return CLINICS[selectedClinic].days.includes(greg.getDay())
+    // Use UTC to avoid timezone issues with getDay()
+    const greg = new Date(Date.UTC(gy, gm - 1, gd))
+    const todayUTC = new Date(Date.UTC(todayGreg.getFullYear(), todayGreg.getMonth(), todayGreg.getDate()))
+    const endUTC = new Date(todayUTC)
+    endUTC.setUTCDate(endUTC.getUTCDate() + 56)
+    if (greg < todayUTC || greg > endUTC) return false
+    // getUTCDay(): 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
+    return CLINICS[selectedClinic].days.includes(greg.getUTCDay())
   }
 
   function isSelected(jd: number): boolean {
@@ -173,8 +199,9 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
   function buildGrid() {
     const daysInMonth = jalaliMonthLength(calYear, calMonth)
     const { gy, gm, gd } = jalaliToGregorian(calYear, calMonth, 1)
-    const firstDow = new Date(gy, gm - 1, gd).getDay()
-    // Convert to Jalali week (starts Saturday=0)
+    // Use UTC to get consistent day-of-week
+    const firstDow = new Date(Date.UTC(gy, gm - 1, gd)).getUTCDay()
+    // Convert JS day (0=Sun..6=Sat) to Jalali week col (0=Sat..6=Fri)
     const jalaliDow = firstDow === 6 ? 0 : firstDow + 1
     const cells: (number | null)[] = Array(jalaliDow).fill(null)
     for (let d = 1; d <= daysInMonth; d++) cells.push(d)
@@ -184,17 +211,36 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
 
   const cells = buildGrid()
 
-  function handleConfirm() {
+  function getSelectedDateLabel(): string {
+    if (!selectedDate) return ''
+    const [y, m, d] = selectedDate.split('/').map(Number)
+    const { gy, gm, gd } = jalaliToGregorian(y, m, d)
+    const greg = new Date(Date.UTC(gy, gm - 1, gd))
+    return `${DAY_NAMES[greg.getUTCDay()]} ${toFarsiNumber(d)} ${JALALI_MONTHS[m - 1]} ${toFarsiNumber(y)}`
+  }
+
+  function handleConfirmDate() {
+    if (selectedDate) setStep('time')
+  }
+
+  function handleConfirmBooking() {
     onOpenChange(false)
     setStep('clinic')
     setSelectedClinic(null)
     setSelectedDate(null)
+    setSelectedTime(null)
   }
 
   function handleBack() {
-    setStep('clinic')
-    setSelectedClinic(null)
-    setSelectedDate(null)
+    if (step === 'time') {
+      setStep('date')
+      setSelectedTime(null)
+    } else {
+      setStep('clinic')
+      setSelectedClinic(null)
+      setSelectedDate(null)
+      setSelectedTime(null)
+    }
   }
 
   function handleClose(isOpen: boolean) {
@@ -202,6 +248,7 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
       setStep('clinic')
       setSelectedClinic(null)
       setSelectedDate(null)
+      setSelectedTime(null)
     }
     onOpenChange(isOpen)
   }
@@ -215,12 +262,14 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
           </DialogTitle>
         </DialogHeader>
 
+        {/* Step 1: Choose clinic */}
         {step === 'clinic' && (
           <div className="p-5 space-y-3">
             <p className="text-sm text-muted-foreground">لطفا مطب مورد نظر را انتخاب کنید:</p>
             {(Object.entries(CLINICS) as [Clinic, typeof CLINICS.tehran][]).map(([key, clinic]) => (
               <button
                 key={key}
+                type="button"
                 onClick={() => handleClinicSelect(key)}
                 className="w-full text-right p-4 rounded-lg border-2 border-border bg-card transition-all hover:border-primary hover:bg-primary/5"
               >
@@ -232,10 +281,11 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
           </div>
         )}
 
+        {/* Step 2: Choose date */}
         {step === 'date' && selectedClinic && (
           <div className="p-4">
             <div className="flex items-center justify-between mb-3">
-              <button onClick={handleBack} className="text-xs px-3 py-1 rounded-full border border-border text-muted-foreground hover:bg-muted">
+              <button type="button" onClick={handleBack} className="text-xs px-3 py-1 rounded-full border border-border text-muted-foreground hover:bg-muted">
                 تغییر مطب
               </button>
               <span className="text-sm font-semibold text-primary">
@@ -244,11 +294,11 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
             </div>
 
             <div className="flex items-center justify-between mb-3">
-              <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-lg font-bold text-foreground">›</button>
+              <button type="button" onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-lg font-bold text-foreground">›</button>
               <span className="font-bold text-base text-foreground">
                 {JALALI_MONTHS[calMonth - 1]} {toFarsiNumber(calYear)}
               </span>
-              <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-lg font-bold text-foreground">‹</button>
+              <button type="button" onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-lg font-bold text-foreground">‹</button>
             </div>
 
             <div className="grid grid-cols-7 mb-1">
@@ -266,19 +316,16 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
                 return (
                   <button
                     key={i}
-                    disabled={!available}
-                    onClick={() => {
-                      if (available) {
-                        handleDateSelect(calYear, calMonth, day);
-                      }
-                    }}
                     type="button"
-                    className={`w-full aspect-square flex items-center justify-center text-sm rounded-full transition-all pointer-events-auto
-                      ${selected ? 'bg-primary text-primary-foreground font-semibold' : ''}
-                      ${today && !selected ? 'bg-muted font-semibold' : ''}
-                      ${available && !selected ? 'hover:bg-primary/10 cursor-pointer font-medium text-foreground' : ''}
-                      ${!available ? 'text-muted-foreground/40 cursor-not-allowed' : ''}
-                    `}
+                    disabled={!available}
+                    onClick={() => available && handleDateSelect(calYear, calMonth, day)}
+                    className={[
+                      'w-full aspect-square flex items-center justify-center text-sm rounded-full transition-all',
+                      selected ? 'bg-primary text-primary-foreground font-semibold' : '',
+                      today && !selected ? 'ring-2 ring-primary ring-offset-1 font-semibold' : '',
+                      available && !selected ? 'hover:bg-primary/10 cursor-pointer font-medium text-foreground' : '',
+                      !available ? 'text-muted-foreground/30 cursor-not-allowed' : '',
+                    ].join(' ')}
                   >
                     {toFarsiNumber(day)}
                   </button>
@@ -288,18 +335,66 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
 
             {selectedDate && (
               <div className="mt-4 p-3 rounded-lg text-sm text-center font-semibold bg-muted text-primary">
-                {(() => {
-                  const [y, m, d] = selectedDate.split('/').map(Number)
-                  const { gy, gm, gd } = jalaliToGregorian(y, m, d)
-                  const greg = new Date(gy, gm - 1, gd)
-                  return `${DAY_NAMES[greg.getDay()]} ${toFarsiNumber(d)} ${JALALI_MONTHS[m - 1]} ${toFarsiNumber(y)}`
-                })()}
+                {getSelectedDateLabel()}
               </div>
             )}
 
             <Button
-              onClick={handleConfirm}
+              type="button"
+              onClick={handleConfirmDate}
               disabled={!selectedDate}
+              className="w-full mt-4"
+            >
+              انتخاب ساعت
+            </Button>
+          </div>
+        )}
+
+        {/* Step 3: Choose time slot */}
+        {step === 'time' && selectedClinic && selectedDate && (
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <button type="button" onClick={handleBack} className="text-xs px-3 py-1 rounded-full border border-border text-muted-foreground hover:bg-muted">
+                تغییر تاریخ
+              </button>
+              <span className="text-sm font-semibold text-primary">
+                {getSelectedDateLabel()}
+              </span>
+            </div>
+
+            <p className="text-xs text-muted-foreground mb-3 text-center">ساعت مورد نظر را انتخاب کنید:</p>
+
+            <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+              {CLINICS[selectedClinic].timeSlots.map((slot) => {
+                const isSelectedTime = selectedTime === slot
+                return (
+                  <button
+                    key={slot}
+                    type="button"
+                    onClick={() => setSelectedTime(slot)}
+                    className={[
+                      'py-2 px-1 rounded-lg text-sm font-medium border-2 transition-all text-center',
+                      isSelectedTime
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border bg-card text-foreground hover:border-primary hover:bg-primary/5',
+                    ].join(' ')}
+                  >
+                    {toFarsiNumber(slot)}
+                  </button>
+                )
+              })}
+            </div>
+
+            {selectedTime && (
+              <div className="mt-4 p-3 rounded-lg text-sm text-center font-semibold bg-muted text-primary">
+                {getSelectedDateLabel()} — ساعت {toFarsiNumber(selectedTime)}
+              </div>
+            )}
+
+            <Button
+              type="button"
+              onClick={handleConfirmBooking}
+              disabled={!selectedTime}
               className="w-full mt-4"
             >
               تایید و ادامه رزرو
