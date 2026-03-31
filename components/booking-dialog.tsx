@@ -156,6 +156,7 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
     today.setHours(0, 0, 0, 0)
     const endDate = new Date(today)
     endDate.setDate(endDate.getDate() + 56)
+    
     if (greg < today || greg > endDate) return false
     return CLINICS[selectedClinic].days.includes(greg.getDay())
   }
@@ -207,7 +208,7 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-sm w-full p-0 overflow-hidden rounded-xl">
+      <DialogContent className="max-w-sm w-full p-0 overflow-hidden rounded-xl pointer-events-auto">
         <DialogHeader className="px-5 pt-5 pb-0">
           <DialogTitle className="text-lg font-bold text-primary">
             رزرو نوبت آنلاین
@@ -266,8 +267,13 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
                   <button
                     key={i}
                     disabled={!available}
-                    onClick={() => available && handleDateSelect(calYear, calMonth, day)}
-                    className={`w-full aspect-square flex items-center justify-center text-sm rounded-full transition-all
+                    onClick={() => {
+                      if (available) {
+                        handleDateSelect(calYear, calMonth, day);
+                      }
+                    }}
+                    type="button"
+                    className={`w-full aspect-square flex items-center justify-center text-sm rounded-full transition-all pointer-events-auto
                       ${selected ? 'bg-primary text-primary-foreground font-semibold' : ''}
                       ${today && !selected ? 'bg-muted font-semibold' : ''}
                       ${available && !selected ? 'hover:bg-primary/10 cursor-pointer font-medium text-foreground' : ''}
