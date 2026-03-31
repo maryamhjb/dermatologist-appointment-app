@@ -37,9 +37,9 @@ const CLINICS: Record<Clinic, {
 }> = {
   tehran: {
     label: 'کلینیک تهران',
-    days: [3], // Wednesday in JS: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+    days: [0, 1, 2, 3, 4, 5, 6], // TEST: All days enabled to debug
     daysLabel: 'چهارشنبه‌ها',
-    address: 'سعادت آباد - بلوار کوهستان - رو به روی ایال - پلاک ۱۱',
+    address: 'سعادت آباد - بلوار کوهستان - رو به روی اوپال - پلاک ۱۱',
     phone: '۰۹۳۰۳۰۱۹۱۰۹',
     timeSlots: generateTimeSlots('14:30', '20:30', 15),
   },
@@ -147,16 +147,6 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
   const todayGreg = new Date()
   todayGreg.setHours(0, 0, 0, 0)
   const todayJalali = gregorianToJalali(todayGreg.getFullYear(), todayGreg.getMonth() + 1, todayGreg.getDate())
-  
-  // Test date conversion
-  const testGregConvert = jalaliToGregorian(todayJalali.jy, todayJalali.jm, todayJalali.jd)
-  const testDate = new Date(testGregConvert.gy, testGregConvert.gm - 1, testGregConvert.gd, 12, 0, 0)
-  if (typeof window !== 'undefined' && !sessionStorage.getItem('date-logged')) {
-    console.log('[v0] Today Gregorian:', todayGreg.toISOString(), 'DayOfWeek:', todayGreg.getDay(), DAY_NAMES[todayGreg.getDay()])
-    console.log('[v0] Today Jalali:', todayJalali)
-    console.log('[v0] Jalali→Gregorian:', testGregConvert, 'testDate:', testDate.toISOString(), 'DayOfWeek:', testDate.getDay(), DAY_NAMES[testDate.getDay()])
-    sessionStorage.setItem('date-logged', 'true')
-  }
   
   const [calYear, setCalYear] = useState(todayJalali.jy)
   const [calMonth, setCalMonth] = useState(todayJalali.jm)
