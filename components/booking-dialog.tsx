@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import jalaali from 'jalaali-js'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
@@ -23,69 +22,96 @@ const CLINICS = {
   karaj: {
     label: 'مطب کرج',
     days: [6, 0, 2], // Saturday=6, Sunday=0, Tuesday=2
-    daysLabel: 'شنبه، یکشنبه و سه‌شنبه‌ها',
+    daysLabel: 'شنبه، یکشنبه و سه‌شنبه',
     address: 'چهاراه طالقانی به سمت میدان شهدا - برج آراد - طبقه هشتم - واحد ۸۰۳',
     phone: '۰۹۹۱۱۳۲۰۰۳۰',
   },
 }
 
 const JALALI_MONTHS = [
-  'فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور',
-  'مهر','آبان','آذر','دی','بهمن','اسفند'
+  'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+  'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
 ]
 
-const JALALI_WEEKDAYS = ['ش','ی','د','س','چ','پ','ج']
+const JALALI_WEEKDAYS = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج']
+
+const DAY_NAMES = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه']
 
 function toFarsiNumber(n: number | string): string {
   return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[+d])
 }
 
-// Get Gregorian day of week for a Jalali date
-function jalaliDayOfWeek(jy: number, jm: number, jd: number): number {
-  const { gy, gm, gd } = jalaali.toGregorian(jy, jm, jd)
-  return new Date(gy, gm - 1, gd).getDay()
+// Jalali to Gregorian conversion (built-in)
+function jalaliToGregorian(jy: number, jm: number, jd: number): { gy: number; gm: number; gd: number } {
+  const jy1 = jy - 979
+  const jm1 = jm - 1
+  const jd1 = jd - 1
+
+  const jdn = 365 * jy1 + Math.floor(jy1 / 33) * 8 + Math.floor((jy1 % 33 + 3) / 4)
+    + (jm1 < 6 ? jm1 * 31 : 6 * 31 + (jm1 - 6) * 30) + jd1 + 584101
+
+  const l = jdn + 68569
+  const n = Math.floor(4 * l / 146097)
+  const l2 = l - Math.floor((146097 * n + 3) / 4)
+  const i = Math.floor(4000 * (l2 + 1) / 1461001)
+  const l3 = l2 - Math.floor(1461 * i / 4) + 31
+  const j = Math.floor(80 * l3 / 2447)
+  const gd = l3 - Math.floor(2447 * j / 80)
+  const l4 = Math.floor(j / 11)
+  const gm = j + 2 - 12 * l4
+  const gy = 100 * (n - 49) + i + l4
+
+  return { gy, gm, gd }
 }
 
-// Get available dates for 8 weeks from today
-function getAvailableDates(allowedDays: number[]): { jy: number; jm: number; jd: number; label: string }[] {
-  const dates: { jy: number; jm: number; jd: number; label: string }[] = []
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const end = new Date(today)
-  end.setDate(end.getDate() + 56) // 8 weeks
+// Gregorian to Jalali conversion (built-in)
+function gregorianToJalali(gy: number, gm: number, gd: number): { jy: number; jm: number; jd: number } {
+  const gy1 = gy - 1600
+  const gm1 = gm - 1
+  const gd1 = gd - 1
 
-  const cur = new Date(today)
-  while (cur <= end) {
-    if (allowedDays.includes(cur.getDay())) {
-      const j = jalaali.toJalaali(cur.getFullYear(), cur.getMonth() + 1, cur.getDate())
-      const dayName = JALALI_WEEKDAYS[cur.getDay() === 0 ? 6 : cur.getDay() - 1 === -1 ? 6 : [6,0,1,2,3,4,5][cur.getDay()]]
-      dates.push({
-        jy: j.jy, jm: j.jm, jd: j.jd,
-        label: `${getDayName(cur.getDay())} ${toFarsiNumber(j.jd)} ${JALALI_MONTHS[j.jm - 1]} ${toFarsiNumber(j.jy)}`
-      })
-    }
-    cur.setDate(cur.getDate() + 1)
+  const gdn = 365 * gy1 + Math.floor((gy1 + 3) / 4) - Math.floor((gy1 + 99) / 100) + Math.floor((gy1 + 399) / 400)
+    + gd1 + Math.floor((gm1 * 153 + (gm1 >= 2 ? -30 : 0) + (gm1 >= 8 ? 1 : 0)) / 5)
+    + (gm1 >= 2 ? (gy % 4 === 0 && (gy % 100 !== 0 || gy % 400 === 0) ? -1 : -2) : 0)
+
+  let jdn = gdn - 79
+  const j33 = Math.floor(jdn / 12053)
+  jdn = jdn % 12053
+  const j4 = Math.floor(jdn / 1461)
+  jdn = jdn % 1461
+
+  let jy: number, jm: number, jd: number
+
+  if (jdn >= 366) {
+    const j1 = Math.floor((jdn - 1) / 365)
+    jdn = (jdn - 1) % 365
+    jy = 979 + 33 * j33 + 4 * j4 + j1
+  } else {
+    jy = 979 + 33 * j33 + 4 * j4
   }
-  return dates
+
+  if (jdn < 186) {
+    jm = 1 + Math.floor(jdn / 31)
+    jd = 1 + (jdn % 31)
+  } else {
+    jm = 7 + Math.floor((jdn - 186) / 30)
+    jd = 1 + ((jdn - 186) % 30)
+  }
+
+  return { jy, jm, jd }
 }
 
-function getDayName(day: number): string {
-  const names = ['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه']
-  return names[day]
-}
-
-// Build calendar grid for a Jalali month
-function buildCalendarGrid(jy: number, jm: number) {
-  const daysInMonth = jalaali.jalaaliMonthLength(jy, jm)
-  // First day of month weekday (0=Sat in Jalali week)
-  const firstDow = jalaliDayOfWeek(jy, jm, 1)
-  // Jalali week starts on Saturday(6), Sun(0),Mon(1),Tue(2),Wed(3),Thu(4),Fri(5)
-  const jalaliDow = [6, 0, 1, 2, 3, 4, 5].indexOf(firstDow)
-
-  const cells: (number | null)[] = Array(jalaliDow).fill(null)
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d)
-  while (cells.length % 7 !== 0) cells.push(null)
-  return cells
+// Get days in Jalali month
+function jalaliMonthLength(jy: number, jm: number): number {
+  if (jm <= 6) return 31
+  if (jm <= 11) return 30
+  // Esfand (month 12)
+  const isLeap = ((jy - 474) % 2820 + 2820) % 2820
+  const cycle = Math.floor(isLeap / 2820)
+  const rem = isLeap % 2820
+  const a = Math.floor((rem * 682) / 2816)
+  const leap = (a + 474) % 128 < 47 || (a + 474) % 2820 === 0
+  return leap ? 30 : 29
 }
 
 export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
@@ -93,17 +119,17 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
   const [selectedClinic, setSelectedClinic] = useState<Clinic | null>(null)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
-  // Calendar navigation
   const todayGreg = new Date()
-  const todayJalaali = jalaali.toJalaali(todayGreg.getFullYear(), todayGreg.getMonth() + 1, todayGreg.getDate())
-  const [calYear, setCalYear] = useState(todayJalaali.jy)
-  const [calMonth, setCalMonth] = useState(todayJalaali.jm)
+  todayGreg.setHours(0, 0, 0, 0)
+  const todayJalali = gregorianToJalali(todayGreg.getFullYear(), todayGreg.getMonth() + 1, todayGreg.getDate())
+  const [calYear, setCalYear] = useState(todayJalali.jy)
+  const [calMonth, setCalMonth] = useState(todayJalali.jm)
 
   function handleClinicSelect(clinic: Clinic) {
     setSelectedClinic(clinic)
     setSelectedDate(null)
-    setCalYear(todayJalaali.jy)
-    setCalMonth(todayJalaali.jm)
+    setCalYear(todayJalali.jy)
+    setCalMonth(todayJalali.jm)
     setStep('date')
   }
 
@@ -123,13 +149,14 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
 
   function isAvailable(jd: number): boolean {
     if (!selectedClinic) return false
-    const { gy, gm, gd } = jalaali.toGregorian(calYear, calMonth, jd)
+    const { gy, gm, gd } = jalaliToGregorian(calYear, calMonth, jd)
     const greg = new Date(gy, gm - 1, gd)
     greg.setHours(0, 0, 0, 0)
-    todayGreg.setHours(0, 0, 0, 0)
-    const endDate = new Date(todayGreg)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const endDate = new Date(today)
     endDate.setDate(endDate.getDate() + 56)
-    if (greg < todayGreg || greg > endDate) return false
+    if (greg < today || greg > endDate) return false
     return CLINICS[selectedClinic].days.includes(greg.getDay())
   }
 
@@ -138,13 +165,25 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
   }
 
   function isToday(jd: number): boolean {
-    return calYear === todayJalaali.jy && calMonth === todayJalaali.jm && jd === todayJalaali.jd
+    return calYear === todayJalali.jy && calMonth === todayJalali.jm && jd === todayJalali.jd
   }
 
-  const cells = buildCalendarGrid(calYear, calMonth)
+  // Build calendar grid
+  function buildGrid() {
+    const daysInMonth = jalaliMonthLength(calYear, calMonth)
+    const { gy, gm, gd } = jalaliToGregorian(calYear, calMonth, 1)
+    const firstDow = new Date(gy, gm - 1, gd).getDay()
+    // Convert to Jalali week (starts Saturday=0)
+    const jalaliDow = firstDow === 6 ? 0 : firstDow + 1
+    const cells: (number | null)[] = Array(jalaliDow).fill(null)
+    for (let d = 1; d <= daysInMonth; d++) cells.push(d)
+    while (cells.length % 7 !== 0) cells.push(null)
+    return cells
+  }
+
+  const cells = buildGrid()
 
   function handleConfirm() {
-    // Future: redirect to login/booking flow
     onOpenChange(false)
     setStep('clinic')
     setSelectedClinic(null)
@@ -157,73 +196,66 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
     setSelectedDate(null)
   }
 
-  function handleClose(open: boolean) {
-    if (!open) {
+  function handleClose(isOpen: boolean) {
+    if (!isOpen) {
       setStep('clinic')
       setSelectedClinic(null)
       setSelectedDate(null)
     }
-    onOpenChange(open)
+    onOpenChange(isOpen)
   }
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-sm w-full p-0 overflow-hidden" style={{ borderRadius: 'var(--radius-lg)' }}>
+      <DialogContent className="max-w-sm w-full p-0 overflow-hidden rounded-xl">
         <DialogHeader className="px-5 pt-5 pb-0">
-          <DialogTitle className="text-lg font-bold" style={{ color: 'var(--primary)' }}>
+          <DialogTitle className="text-lg font-bold text-primary">
             رزرو نوبت آنلاین
           </DialogTitle>
         </DialogHeader>
 
-        {/* STEP 1: Choose clinic */}
         {step === 'clinic' && (
           <div className="p-5 space-y-3">
-            <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>لطفاً مطب مورد نظر را انتخاب کنید:</p>
+            <p className="text-sm text-muted-foreground">لطفا مطب مورد نظر را انتخاب کنید:</p>
             {(Object.entries(CLINICS) as [Clinic, typeof CLINICS.tehran][]).map(([key, clinic]) => (
               <button
                 key={key}
                 onClick={() => handleClinicSelect(key)}
-                className="w-full text-right p-4 rounded-lg border-2 transition-all hover:border-primary hover:bg-primary/5"
-                style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
+                className="w-full text-right p-4 rounded-lg border-2 border-border bg-card transition-all hover:border-primary hover:bg-primary/5"
               >
-                <p className="font-bold text-base" style={{ color: 'var(--foreground)' }}>{clinic.label}</p>
-                <p className="text-xs mt-1" style={{ color: 'var(--primary)' }}>{clinic.daysLabel}</p>
-                <p className="text-xs mt-1" style={{ color: 'var(--muted-foreground)' }}>{clinic.address}</p>
+                <p className="font-bold text-base text-foreground">{clinic.label}</p>
+                <p className="text-xs mt-1 text-primary">{clinic.daysLabel}</p>
+                <p className="text-xs mt-1 text-muted-foreground">{clinic.address}</p>
               </button>
             ))}
           </div>
         )}
 
-        {/* STEP 2: Choose date - Jalali Calendar */}
         {step === 'date' && selectedClinic && (
           <div className="p-4">
-            {/* Clinic badge */}
             <div className="flex items-center justify-between mb-3">
-              <button onClick={handleBack} className="text-xs px-3 py-1 rounded-full border" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>
+              <button onClick={handleBack} className="text-xs px-3 py-1 rounded-full border border-border text-muted-foreground hover:bg-muted">
                 تغییر مطب
               </button>
-              <span className="text-sm font-semibold" style={{ color: 'var(--primary)' }}>
+              <span className="text-sm font-semibold text-primary">
                 {CLINICS[selectedClinic].label}
               </span>
             </div>
 
-            {/* Month navigation */}
             <div className="flex items-center justify-between mb-3">
-              <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-lg font-bold" style={{ color: 'var(--foreground)' }}>›</button>
-              <span className="font-bold text-base" style={{ color: 'var(--foreground)' }}>
+              <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-lg font-bold text-foreground">›</button>
+              <span className="font-bold text-base text-foreground">
                 {JALALI_MONTHS[calMonth - 1]} {toFarsiNumber(calYear)}
               </span>
-              <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-lg font-bold" style={{ color: 'var(--foreground)' }}>‹</button>
+              <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-lg font-bold text-foreground">‹</button>
             </div>
 
-            {/* Weekday headers */}
             <div className="grid grid-cols-7 mb-1">
               {JALALI_WEEKDAYS.map(d => (
-                <div key={d} className="text-center text-xs font-semibold py-1" style={{ color: 'var(--muted-foreground)' }}>{d}</div>
+                <div key={d} className="text-center text-xs font-semibold py-1 text-muted-foreground">{d}</div>
               ))}
             </div>
 
-            {/* Calendar grid */}
             <div className="grid grid-cols-7 gap-y-1">
               {cells.map((day, i) => {
                 if (!day) return <div key={i} />
@@ -235,14 +267,12 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
                     key={i}
                     disabled={!available}
                     onClick={() => available && handleDateSelect(calYear, calMonth, day)}
-                    className="w-full aspect-square flex items-center justify-center text-sm rounded-full transition-all"
-                    style={{
-                      background: selected ? 'var(--primary)' : today ? 'var(--muted)' : 'transparent',
-                      color: selected ? 'var(--primary-foreground)' : available ? 'var(--foreground)' : 'var(--muted-foreground)',
-                      fontWeight: available ? '600' : '400',
-                      opacity: available ? 1 : 0.35,
-                      cursor: available ? 'pointer' : 'not-allowed',
-                    }}
+                    className={`w-full aspect-square flex items-center justify-center text-sm rounded-full transition-all
+                      ${selected ? 'bg-primary text-primary-foreground font-semibold' : ''}
+                      ${today && !selected ? 'bg-muted font-semibold' : ''}
+                      ${available && !selected ? 'hover:bg-primary/10 cursor-pointer font-medium text-foreground' : ''}
+                      ${!available ? 'text-muted-foreground/40 cursor-not-allowed' : ''}
+                    `}
                   >
                     {toFarsiNumber(day)}
                   </button>
@@ -250,14 +280,13 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
               })}
             </div>
 
-            {/* Selected date display */}
             {selectedDate && (
-              <div className="mt-4 p-3 rounded-lg text-sm text-center font-semibold" style={{ background: 'var(--muted)', color: 'var(--primary)' }}>
+              <div className="mt-4 p-3 rounded-lg text-sm text-center font-semibold bg-muted text-primary">
                 {(() => {
                   const [y, m, d] = selectedDate.split('/').map(Number)
-                  const { gy, gm, gd } = jalaali.toGregorian(y, m, d)
+                  const { gy, gm, gd } = jalaliToGregorian(y, m, d)
                   const greg = new Date(gy, gm - 1, gd)
-                  return `${getDayName(greg.getDay())} ${toFarsiNumber(d)} ${JALALI_MONTHS[m - 1]} ${toFarsiNumber(y)}`
+                  return `${DAY_NAMES[greg.getDay()]} ${toFarsiNumber(d)} ${JALALI_MONTHS[m - 1]} ${toFarsiNumber(y)}`
                 })()}
               </div>
             )}
@@ -266,7 +295,6 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
               onClick={handleConfirm}
               disabled={!selectedDate}
               className="w-full mt-4"
-              style={{ background: selectedDate ? 'var(--primary)' : 'var(--muted)', color: selectedDate ? 'var(--primary-foreground)' : 'var(--muted-foreground)' }}
             >
               تایید و ادامه رزرو
             </Button>
