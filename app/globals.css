@@ -78,13 +78,15 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: rgb(var(--border) / <alpha-value>);
+    outline-color: rgb(var(--ring) / 0.5);
   }
   html {
     direction: rtl;
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
     font-family: system-ui, -apple-system, sans-serif;
   }
 }
