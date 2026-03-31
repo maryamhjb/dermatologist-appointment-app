@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
+import { Logo } from '@/components/logo'
 
 export default function AdminDashboardPage() {
   const [user, setUser] = useState<any>(null)
@@ -90,17 +91,20 @@ export default function AdminDashboardPage() {
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">پنل مدیریت</h1>
-            <p className="text-muted-foreground">خوش آمدید، {admin?.full_name}</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              نقش: {isSuperAdmin ? 'مدیر سیستم' : 'دستیار مدیر'}
-            </p>
-          </div>
+        <div className="flex justify-between items-center mb-8 border-b border-border pb-6">
+          <Logo href="/" showText={true} />
           <Button variant="outline" onClick={handleLogout}>
             خروج
           </Button>
+        </div>
+
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">پنل مدیریت</h1>
+          <p className="text-muted-foreground">خوش آمدید، {admin?.full_name}</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            نقش: {isSuperAdmin ? 'مدیر سیستم' : 'دستیار مدیر'}
+          </p>
         </div>
 
         {/* Tabs */}

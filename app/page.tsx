@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Logo } from '@/components/logo'
 
 export default function Home() {
   return (
@@ -10,7 +11,7 @@ export default function Home() {
       {/* Navigation */}
       <nav className="border-b border-border">
         <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary">مطب درماتولوژی دکتر مریم</h1>
+          <Logo href="/" showText={true} />
           <div className="flex gap-4">
             <Link href="/auth/login">
               <Button variant="outline">ورود بیماران</Button>

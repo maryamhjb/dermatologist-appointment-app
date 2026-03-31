@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
 import { BookingDialog } from '@/components/booking-dialog'
 import { ProceduresList } from '@/components/procedures-list'
+import { Logo } from '@/components/logo'
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null)
@@ -77,14 +78,17 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">سلام، {user?.phone}</h1>
-            <p className="text-muted-foreground">خوش آمدید به سیستم رزرو نوبت</p>
-          </div>
+        <div className="flex justify-between items-center mb-8 border-b border-border pb-6">
+          <Logo href="/" showText={true} />
           <Button variant="outline" onClick={handleLogout}>
             خروج
           </Button>
+        </div>
+
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">سلام، {user?.phone}</h1>
+          <p className="text-muted-foreground">خوش آمدید به سیستم رزرو نوبت</p>
         </div>
 
         {/* Tabs */}
