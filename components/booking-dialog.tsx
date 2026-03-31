@@ -177,14 +177,14 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
   function isAvailable(jd: number): boolean {
     if (!selectedClinic) return false
     const { gy, gm, gd } = jalaliToGregorian(calYear, calMonth, jd)
-    // Use UTC to avoid timezone issues with getDay()
-    const greg = new Date(Date.UTC(gy, gm - 1, gd))
-    const todayUTC = new Date(Date.UTC(todayGreg.getFullYear(), todayGreg.getMonth(), todayGreg.getDate()))
-    const endUTC = new Date(todayUTC)
-    endUTC.setUTCDate(endUTC.getUTCDate() + 56)
-    if (greg < todayUTC || greg > endUTC) return false
-    // getUTCDay(): 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
-    return CLINICS[selectedClinic].days.includes(greg.getUTCDay())
+    // Use local date (noon) to avoid DST boundary issues with getDay()
+    const greg = new Date(gy, gm - 1, gd, 12, 0, 0)
+    const todayNoon = new Date(todayGreg.getFullYear(), todayGreg.getMonth(), todayGreg.getDate(), 12, 0, 0)
+    const endDate = new Date(todayNoon)
+    endDate.setDate(endDate.getDate() + 56)
+    if (greg < todayNoon || greg > endDate) return false
+    // getDay(): 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
+    return CLINICS[selectedClinic].days.includes(greg.getDay())
   }
 
   function isSelected(jd: number): boolean {
@@ -199,8 +199,8 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
   function buildGrid() {
     const daysInMonth = jalaliMonthLength(calYear, calMonth)
     const { gy, gm, gd } = jalaliToGregorian(calYear, calMonth, 1)
-    // Use UTC to get consistent day-of-week
-    const firstDow = new Date(Date.UTC(gy, gm - 1, gd)).getUTCDay()
+    // Use local noon to avoid DST issues
+    const firstDow = new Date(gy, gm - 1, gd, 12, 0, 0).getDay()
     // Convert JS day (0=Sun..6=Sat) to Jalali week col (0=Sat..6=Fri)
     const jalaliDow = firstDow === 6 ? 0 : firstDow + 1
     const cells: (number | null)[] = Array(jalaliDow).fill(null)
