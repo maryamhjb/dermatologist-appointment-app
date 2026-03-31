@@ -34,6 +34,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet" />
+      </head>
       <body className="antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           {children}
