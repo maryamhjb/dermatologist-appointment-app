@@ -4,7 +4,6 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Deep Red & Professional Grey & Creamy White */
   --background: #FAF7F2;
   --foreground: #2D2D2D;
   --card: #FFFFFF;
@@ -76,8 +75,8 @@
 }
 
 @theme inline {
-  --font-sans: 'Vazirmatn', sans-serif;
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -124,6 +123,7 @@
     direction: rtl;
   }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground;
+    font-family: 'Vazirmatn', system-ui, -apple-system, sans-serif;
   }
 }
