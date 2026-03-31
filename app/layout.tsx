@@ -1,8 +1,11 @@
 import type { Metadata } from 'next'
 import { Analytics } from '@vercel/analytics/next'
+import { Vazirmatn } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/toaster'
+
+const vazirmatn = Vazirmatn({ subsets: ['latin', 'arabic'] })
 
 export const metadata: Metadata = {
   title: 'مطب درماتولوژی دکتر مریم',
@@ -33,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="fa" dir="rtl" suppressHydrationWarning>
+    <html lang="fa" dir="rtl" suppressHydrationWarning className={vazirmatn.className}>
       <body className="antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           {children}

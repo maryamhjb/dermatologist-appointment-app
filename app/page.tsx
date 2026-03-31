@@ -29,7 +29,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-4xl font-bold mb-4" style={{ fontFamily: '"Vazirmatn", sans-serif' }}>
+        <h2 className="text-4xl font-bold mb-4">
           خدمات تخصصی درماتولوژی
         </h2>
         <p className="text-xl text-muted-foreground mb-8">
