@@ -143,7 +143,7 @@ export default function Home() {
             <CardContent className="space-y-4">
               <div>
                 <p className="font-semibold">نشانی:</p>
-                <p className="text-muted-foreground">چهاره طالقانی به سمت میدان شهدا - برج آراد - طبقه هشتم - واحد ۸۰۳</p>
+                <p className="text-muted-foreground">چهارراه طالقانی به سمت میدان شهدا - برج آراد - طبقه هشتم - واحد ۸۰۳</p>
               </div>
               <div>
                 <p className="font-semibold">تلفن:</p>

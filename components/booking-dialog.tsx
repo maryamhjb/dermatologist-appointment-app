@@ -147,6 +147,17 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
   const todayGreg = new Date()
   todayGreg.setHours(0, 0, 0, 0)
   const todayJalali = gregorianToJalali(todayGreg.getFullYear(), todayGreg.getMonth() + 1, todayGreg.getDate())
+  
+  // Test date conversion
+  const testGregConvert = jalaliToGregorian(todayJalali.jy, todayJalali.jm, todayJalali.jd)
+  const testDate = new Date(testGregConvert.gy, testGregConvert.gm - 1, testGregConvert.gd, 12, 0, 0)
+  if (typeof window !== 'undefined' && !sessionStorage.getItem('date-logged')) {
+    console.log('[v0] Today Gregorian:', todayGreg.toISOString(), 'DayOfWeek:', todayGreg.getDay(), DAY_NAMES[todayGreg.getDay()])
+    console.log('[v0] Today Jalali:', todayJalali)
+    console.log('[v0] Jalali→Gregorian:', testGregConvert, 'testDate:', testDate.toISOString(), 'DayOfWeek:', testDate.getDay(), DAY_NAMES[testDate.getDay()])
+    sessionStorage.setItem('date-logged', 'true')
+  }
+  
   const [calYear, setCalYear] = useState(todayJalali.jy)
   const [calMonth, setCalMonth] = useState(todayJalali.jm)
 
@@ -183,27 +194,9 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
     const endDate = new Date(todayNoon)
     endDate.setDate(endDate.getDate() + 56)
     
-    const dayOfWeek = greg.getDay()
-    const clinicDays = CLINICS[selectedClinic].days
-    const inRange = greg >= todayNoon && greg <= endDate
-    const isClinicDay = clinicDays.includes(dayOfWeek)
-    
-    console.log("[v0] isAvailable:", {
-      jalali: `${calYear}/${calMonth}/${jd}`,
-      gregorian: `${gy}/${gm}/${gd}`,
-      gregDate: greg.toISOString(),
-      todayNoon: todayNoon.toISOString(),
-      endDate: endDate.toISOString(),
-      dayOfWeek,
-      clinicDays,
-      inRange,
-      isClinicDay,
-      result: inRange && isClinicDay
-    })
-    
     if (greg < todayNoon || greg > endDate) return false
     // getDay(): 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
-    return clinicDays.includes(dayOfWeek)
+    return CLINICS[selectedClinic].days.includes(greg.getDay())
   }
 
   function isSelected(jd: number): boolean {
