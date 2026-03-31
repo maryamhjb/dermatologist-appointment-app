@@ -1,11 +1,15 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Logo } from '@/components/logo'
+import { BookingDialog } from '@/components/booking-dialog'
 
 export default function Home() {
+  const [bookingOpen, setBookingOpen] = useState(false)
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -31,11 +35,10 @@ export default function Home() {
         <p className="text-xl text-muted-foreground mb-8">
           سیستم جدید رزرو نوبت و خدمات درماتولوژی دکتر مریم
         </p>
-        <Link href="/auth/login">
-          <Button size="lg" className="bg-primary hover:bg-primary/90">
-            رزرو نوبت جدید
-          </Button>
-        </Link>
+        <Button size="lg" className="bg-primary hover:bg-primary/90" onClick={() => setBookingOpen(true)}>
+          رزرو نوبت آنلاین
+        </Button>
+        <BookingDialog open={bookingOpen} onOpenChange={setBookingOpen} />
       </section>
 
       {/* Features */}

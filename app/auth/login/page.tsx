@@ -134,7 +134,7 @@ export default function LoginPage() {
                 </div>
               )}
               <Button type="submit" disabled={loading} className="w-full">
-                {loading ? 'درحال ارسال...' : 'ارسال کد تایید'}
+                {loading ? <span>{'درحال ارسال...'}</span> : <span>{'ارسال کد تایید'}</span>}
               </Button>
             </form>
           ) : (
