@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
@@ -115,6 +116,7 @@ function jalaliMonthLength(jy: number, jm: number): number {
 }
 
 export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
+  const router = useRouter()
   const [step, setStep] = useState<'clinic' | 'date'>('clinic')
   const [selectedClinic, setSelectedClinic] = useState<Clinic | null>(null)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
@@ -184,10 +186,21 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
   const cells = buildGrid()
 
   function handleConfirm() {
+    if (!selectedClinic || !selectedDate) return
+    
+    const [y, m, d] = selectedDate.split('/').map(Number)
+    const { gy, gm, gd } = jalaliToGregorian(y, m, d)
+    const greg = new Date(gy, gm - 1, gd)
+    const jalaliFormatted = `${DAY_NAMES[greg.getDay()]} ${toFarsiNumber(d)} ${JALALI_MONTHS[m - 1]} ${toFarsiNumber(y)}`
+    const gregorianDate = greg.toISOString().split('T')[0]
+    
     onOpenChange(false)
     setStep('clinic')
     setSelectedClinic(null)
     setSelectedDate(null)
+    
+    // Redirect to confirmation page with booking details
+    router.push(`/confirm?clinic=${selectedClinic}&date=${gregorianDate}&jalali=${encodeURIComponent(jalaliFormatted)}`)
   }
 
   function handleBack() {
