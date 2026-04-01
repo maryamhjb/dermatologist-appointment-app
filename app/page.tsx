@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
 import { Logo } from '@/components/logo'
 import { BookingDialog } from '@/components/booking-dialog'
 
@@ -78,31 +78,18 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle>گالری و مطب‌های ما</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="tehran" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="tehran">تهران و کرج</TabsTrigger>
-                  <TabsTrigger value="gallery">گالری</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="tehran" className="mt-4">
-                  <CardDescription className="text-right mb-4">
-                    مطبخ‌های تهران (چهارشنبه) و کرج (شنبه، یکشنبه، سه‌شنبه)
-                  </CardDescription>
-                </TabsContent>
-                
-                <TabsContent value="gallery" className="mt-4">
-                  <CardDescription className="text-right">
-                    مطبخ‌های تهران (چهارشنبه) و کرج (شنبه، یکشنبه، سه‌شنبه)
-                  </CardDescription>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+          <Link href="/gallery">
+            <Card className="md:col-span-2 cursor-pointer hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle>گالری ما</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-right">
+                  عکس‌های قبل و بعد، ویدیوهای آموزشی و راهنمای استفاده از وب‌سایت
+                </CardDescription>
+              </CardContent>
+            </Card>
+          </Link>
 
           <Card>
             <CardHeader>
