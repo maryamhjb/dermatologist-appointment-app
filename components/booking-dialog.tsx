@@ -65,40 +65,33 @@ function jalaliToGregorian(jy: number, jm: number, jd: number): { gy: number; gm
   return { gy, gm, gd }
 }
 
-// Gregorian to Jalali conversion (built-in)
+// Gregorian to Jalali conversion (correct implementation)
 function gregorianToJalali(gy: number, gm: number, gd: number): { jy: number; jm: number; jd: number } {
-  const gy1 = gy - 1600
-  const gm1 = gm - 1
-  const gd1 = gd - 1
-
-  const gdn = 365 * gy1 + Math.floor((gy1 + 3) / 4) - Math.floor((gy1 + 99) / 100) + Math.floor((gy1 + 399) / 400)
-    + gd1 + Math.floor((gm1 * 153 + (gm1 >= 2 ? -30 : 0) + (gm1 >= 8 ? 1 : 0)) / 5)
-    + (gm1 >= 2 ? (gy % 4 === 0 && (gy % 100 !== 0 || gy % 400 === 0) ? -1 : -2) : 0)
-
-  let jdn = gdn - 79
-  const j33 = Math.floor(jdn / 12053)
-  jdn = jdn % 12053
-  const j4 = Math.floor(jdn / 1461)
-  jdn = jdn % 1461
-
-  let jy: number, jm: number, jd: number
-
-  if (jdn >= 366) {
-    const j1 = Math.floor((jdn - 1) / 365)
-    jdn = (jdn - 1) % 365
-    jy = 979 + 33 * j33 + 4 * j4 + j1
-  } else {
-    jy = 979 + 33 * j33 + 4 * j4
+  const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+  let jy: number
+  
+  const gy2 = (gm > 2) ? (gy + 1) : gy
+  let days = 355666 + (365 * gy) + Math.floor((gy2 + 3) / 4) - Math.floor((gy2 + 99) / 100) + Math.floor((gy2 + 399) / 400) + gd + g_d_m[gm - 1]
+  
+  jy = -1595 + (33 * Math.floor(days / 12053))
+  days = days % 12053
+  jy += 4 * Math.floor(days / 1461)
+  days = days % 1461
+  
+  if (days > 365) {
+    jy += Math.floor((days - 1) / 365)
+    days = (days - 1) % 365
   }
-
-  if (jdn < 186) {
-    jm = 1 + Math.floor(jdn / 31)
-    jd = 1 + (jdn % 31)
+  
+  let jm: number, jd: number
+  if (days < 186) {
+    jm = 1 + Math.floor(days / 31)
+    jd = 1 + (days % 31)
   } else {
-    jm = 7 + Math.floor((jdn - 186) / 30)
-    jd = 1 + ((jdn - 186) % 30)
+    jm = 7 + Math.floor((days - 186) / 30)
+    jd = 1 + ((days - 186) % 30)
   }
-
+  
   return { jy, jm, jd }
 }
 
@@ -124,6 +117,7 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
   const todayGreg = new Date()
   todayGreg.setHours(0, 0, 0, 0)
   const todayJalali = gregorianToJalali(todayGreg.getFullYear(), todayGreg.getMonth() + 1, todayGreg.getDate())
+  
   const [calYear, setCalYear] = useState(todayJalali.jy)
   const [calMonth, setCalMonth] = useState(todayJalali.jm)
 
@@ -158,6 +152,7 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
     today.setHours(0, 0, 0, 0)
     const endDate = new Date(today)
     endDate.setDate(endDate.getDate() + 56)
+    
     if (greg < today || greg > endDate) return false
     return CLINICS[selectedClinic].days.includes(greg.getDay())
   }
