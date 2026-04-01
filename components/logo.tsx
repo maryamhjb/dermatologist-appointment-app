@@ -10,14 +10,13 @@ interface LogoProps {
 export function Logo({ href = '/', showText = true, className = '' }: LogoProps) {
   const content = (
     <div className={`flex items-center gap-4 ${className}`}>
-      <div className="relative w-12 h-12 md:w-14 md:h-14 flex-shrink-0">
+      <div className="relative flex-shrink-0">
         <Image
           src="/logo.png"
           alt="Dr. Maryam Logo"
           width={56}
           height={56}
-          className="object-contain w-full h-full"
-          style={{ width: 'auto', height: 'auto' }}
+          className="object-contain"
           priority
         />
       </div>
