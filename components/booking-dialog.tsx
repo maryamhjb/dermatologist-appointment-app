@@ -2,7 +2,13 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 interface BookingDialogProps {
   open: boolean
@@ -281,6 +287,9 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
           <DialogTitle className="text-lg font-bold text-primary">
             رزرو نوبت آنلاین
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            انتخاب مطب، سپس تاریخ و زمان ویزیت برای تکمیل رزرو نوبت
+          </DialogDescription>
         </DialogHeader>
 
         {/* Step 1: Choose clinic */}

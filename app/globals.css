@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -28,7 +27,7 @@
   --radius-md: 0.375rem;
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
-  --font-sans: 'Vazirmatn', system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-iran-yekan-x), system-ui, -apple-system, sans-serif;
   --font-mono: ui-monospace, monospace;
 }
 
@@ -39,6 +38,6 @@ html {
 body {
   background-color: oklch(0.98 0.01 80);
   color: oklch(0.2 0 0);
-  font-family: 'Vazirmatn', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-iran-yekan-x), system-ui, -apple-system, sans-serif;
 }
 
