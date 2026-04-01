@@ -13,7 +13,11 @@ BEGIN
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data ->> 'full_name', 'بیمار جدید'),
-    COALESCE(NEW.raw_user_meta_data ->> 'phone', '')
+    COALESCE(
+      NULLIF(TRIM(NEW.raw_user_meta_data ->> 'phone'), ''),
+      NULLIF(TRIM(NEW.phone::text), ''),
+      NEW.email
+    )
   )
   ON CONFLICT (id) DO NOTHING;
   RETURN NEW;

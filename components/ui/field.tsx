@@ -143,7 +143,7 @@ function FieldDescription({ className, ...props }: React.ComponentProps<'p'>) {
     <p
       data-slot="field-description"
       className={cn(
-        'text-muted-foreground text-sm leading-normal font-normal group-has-[[data-orientation=horizontal]]/field:text-balance',
+        'text-[0.625rem] leading-relaxed font-normal text-muted-foreground sm:text-[0.6875rem] group-has-[[data-orientation=horizontal]]/field:text-balance',
         'last:mt-0 nth-last-2:-mt-1 [[data-variant=legend]+&]:-mt-1.5',
         '[&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4',
         className,
@@ -205,7 +205,7 @@ function FieldError({
     }
 
     return (
-      <ul className="ml-4 flex list-disc flex-col gap-1">
+      <ul className="ms-4 flex list-disc flex-col gap-1">
         {errors.map(
           (error, index) =>
             error?.message && <li key={index}>{error.message}</li>,
@@ -222,7 +222,10 @@ function FieldError({
     <div
       role="alert"
       data-slot="field-error"
-      className={cn('text-destructive text-sm font-normal', className)}
+      className={cn(
+        'text-[0.625rem] font-medium leading-snug text-destructive sm:text-[0.6875rem]',
+        className,
+      )}
       {...props}
     >
       {content}

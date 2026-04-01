@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
-import { Logo } from '@/components/logo'
+import { PortalHeader } from '@/components/layout/portal-header'
 
 export default function AdminDashboardPage() {
   const [user, setUser] = useState<any>(null)
@@ -24,19 +24,18 @@ export default function AdminDashboardPage() {
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) {
-        router.push('/admin/login')
+        router.push('/auth/login')
         return
       }
 
-      // Check admin role
       const { data: adminUser } = await supabase
         .from('admin_users')
         .select('*')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (!adminUser) {
-        router.push('/admin/login')
+        router.push('/dashboard')
         return
       }
 
@@ -78,26 +77,19 @@ export default function AdminDashboardPage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    router.push('/admin/login')
+    router.push('/auth/login')
   }
 
   if (loading) {
-    return <div className="p-4">درحال بارگذاری...</div>
+    return <div className="p-4 text-start">درحال بارگذاری...</div>
   }
 
   const isSuperAdmin = admin?.role === 'super_admin'
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8 border-b border-border pb-6">
-          <Logo href="/" showText={true} />
-          <Button variant="outline" onClick={handleLogout}>
-            خروج
-          </Button>
-        </div>
-
+    <div className="min-h-dvh bg-background text-start">
+      <PortalHeader onLogout={handleLogout} maxWidthClass="max-w-6xl" />
+      <div className="mx-auto max-w-6xl px-4 py-6">
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold">پنل مدیریت</h1>
@@ -126,8 +118,8 @@ export default function AdminDashboardPage() {
               </CardHeader>
               <CardContent>
                 {appointments.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    نوبتی موجود نیست
+                  <div className="py-8 text-start text-sm text-muted-foreground">
+                    نوبتی ثبت نشده است.
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -143,7 +135,7 @@ export default function AdminDashboardPage() {
                               {apt.time_slot?.slot_date} {apt.time_slot?.start_time}
                             </p>
                           </div>
-                          <div className="text-right">
+                          <div className="text-end">
                             <span className={`px-3 py-1 rounded text-sm font-medium ${
                               apt.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                               apt.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -170,12 +162,12 @@ export default function AdminDashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle>نظرات منتظر تایید</CardTitle>
-                <CardDescription>نظرات در انتظار بررسی و تایید</CardDescription>
+                <CardDescription>در انتظار بررسی</CardDescription>
               </CardHeader>
               <CardContent>
                 {comments.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    نظری منتظر تایید نیست
+                  <div className="py-8 text-start text-sm text-muted-foreground">
+                    نظری در صف نیست.
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -206,8 +198,8 @@ export default function AdminDashboardPage() {
                   <CardDescription>اضافه، ویرایش یا حذف خدمات</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8 text-muted-foreground">
-                    صفحه مدیریت خدمات در ساختن...
+                  <div className="py-8 text-start text-sm text-muted-foreground">
+                    به‌زودی.
                   </div>
                 </CardContent>
               </Card>
@@ -223,8 +215,8 @@ export default function AdminDashboardPage() {
                   <CardDescription>تنظیم نوبت‌های موجود برای هر روز</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8 text-muted-foreground">
-                    صفحه مدیریت نوبت‌های زمانی در ساختن...
+                  <div className="py-8 text-start text-sm text-muted-foreground">
+                    به‌زودی.
                   </div>
                 </CardContent>
               </Card>
@@ -240,8 +232,8 @@ export default function AdminDashboardPage() {
                   <CardDescription>تنظیمات امتیازات، مدیران و سایر موارد</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8 text-muted-foreground">
-                    صفحه تنظیمات در ساختن...
+                  <div className="py-8 text-start text-sm text-muted-foreground">
+                    به‌زودی.
                   </div>
                 </CardContent>
               </Card>

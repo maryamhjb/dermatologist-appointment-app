@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -9,7 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
 import { BookingDialog } from '@/components/booking-dialog'
 import { ProceduresList } from '@/components/procedures-list'
-import { Logo } from '@/components/logo'
+import { PortalHeader } from '@/components/layout/portal-header'
+import { cn } from '@/lib/utils'
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null)
@@ -17,6 +19,7 @@ export default function DashboardPage() {
   const [appointments, setAppointments] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [bookingOpen, setBookingOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
@@ -31,7 +34,14 @@ export default function DashboardPage() {
       }
 
       setUser(user)
-      
+
+      const { data: adminRow } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle()
+      setIsAdmin(Boolean(adminRow))
+
       // Fetch patient data
       const { data: patientData } = await supabase
         .from('patients')
@@ -71,24 +81,42 @@ export default function DashboardPage() {
   }
 
   if (loading) {
-    return <div className="p-4">درحال بارگذاری...</div>
+    return <div className="p-4 text-start">درحال بارگذاری...</div>
   }
 
-  return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8 border-b border-border pb-6">
-          <Logo href="/" showText={true} />
-          <Button variant="outline" onClick={handleLogout}>
-            خروج
-          </Button>
-        </div>
+  const meta = user?.user_metadata as Record<string, unknown> | undefined
+  const metaName = typeof meta?.full_name === 'string' ? meta.full_name.trim() : ''
+  const displayName =
+    (patient?.full_name as string | undefined)?.trim() ||
+    metaName ||
+    (typeof user?.email === 'string' ? user.email : '') ||
+    'کاربر'
 
+  return (
+    <div className="min-h-dvh bg-background text-start">
+      <PortalHeader onLogout={handleLogout} maxWidthClass="max-w-4xl" />
+      <div className="mx-auto max-w-4xl px-4 py-6">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">سلام، {user?.phone}</h1>
-          <p className="text-muted-foreground">خوش آمدید به سیستم رزرو نوبت</p>
+          <h1 className="text-balance text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+            سلام، {displayName}
+          </h1>
+          <p className="mt-1.5 text-sm text-muted-foreground sm:text-[0.9375rem]">
+            رزرو نوبت آنلاین
+          </p>
+          {isAdmin ? (
+            <div className="mt-5">
+              <Link
+                href="/admin/dashboard"
+                className={cn(
+                  'inline-flex min-h-10 items-center justify-center rounded-lg border px-4 text-sm font-semibold transition-[background-color,border-color]',
+                  'border-primary/20 bg-background text-primary hover:border-primary/30 hover:bg-primary/5',
+                )}
+              >
+                پنل مدیریت
+              </Link>
+            </div>
+          ) : null}
         </div>
 
         {/* Tabs */}
@@ -105,12 +133,12 @@ export default function DashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle>نوبت‌های شما</CardTitle>
-                <CardDescription>لیست تمام نوبت‌های رزرو شده</CardDescription>
+                <CardDescription>نوبت‌های رزروشده</CardDescription>
               </CardHeader>
               <CardContent>
                 {appointments.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    هنوز نوبتی رزرو نشده است
+                  <div className="py-8 text-start text-sm text-muted-foreground">
+                    نوبتی ثبت نشده است.
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -129,7 +157,7 @@ export default function DashboardPage() {
                               ساعت: {apt.time_slot?.start_time}
                             </p>
                           </div>
-                          <div className="text-right">
+                          <div className="text-end">
                             <span className={`px-3 py-1 rounded text-sm font-medium ${
                               apt.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                               apt.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -156,11 +184,11 @@ export default function DashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle>رزرو نوبت جدید</CardTitle>
-                <CardDescription>برای رزرو نوبت، لطفاً مراحل زیر را تکمیل کنید</CardDescription>
+                <CardDescription>مطب، تاریخ و ساعت را انتخاب کنید.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-muted-foreground">
-                  شما می‌توانید نوبت جدیدی را برای هریک از مطب‌های ما رزرو کنید. برای شروع، روی دکمه زیر کلیک کنید.
+                <p className="text-sm text-muted-foreground">
+                  با دکمه زیر فرم رزرو باز می‌شود.
                 </p>
                 <Button onClick={() => setBookingOpen(true)} className="w-full bg-primary">
                   رزرو نوبت جدید
@@ -174,7 +202,7 @@ export default function DashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle>خدمات درماتولوژی</CardTitle>
-                <CardDescription>لیست خدمات و قیمت‌های موجود</CardDescription>
+                <CardDescription>خدمات فعال و قیمت</CardDescription>
               </CardHeader>
               <CardContent>
                 <ProceduresList />
@@ -187,7 +215,7 @@ export default function DashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle>سیستم امتیازات</CardTitle>
-                <CardDescription>امتیازات شما و نحوه استفاده از آن</CardDescription>
+                <CardDescription>موجودی و قوانین ساده</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {patient && (
@@ -195,35 +223,35 @@ export default function DashboardPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <Card className="bg-primary/10 border-primary">
                         <CardContent className="pt-6">
-                          <div className="text-center">
-                            <p className="text-sm text-muted-foreground mb-2">امتیاز موجود</p>
-                            <p className="text-3xl font-bold text-primary">{patient.points}</p>
+                          <div className="text-start">
+                            <p className="mb-2 text-sm text-muted-foreground">موجود</p>
+                            <p className="text-3xl font-bold tabular-nums text-primary">{patient.points}</p>
                           </div>
                         </CardContent>
                       </Card>
                       <Card>
                         <CardContent className="pt-6">
-                          <div className="text-center">
-                            <p className="text-sm text-muted-foreground mb-2">کل امتیازات درآمدی</p>
-                            <p className="text-3xl font-bold">{patient.total_points_earned}</p>
+                          <div className="text-start">
+                            <p className="mb-2 text-sm text-muted-foreground">کل کسب‌شده</p>
+                            <p className="text-3xl font-bold tabular-nums">{patient.total_points_earned}</p>
                           </div>
                         </CardContent>
                       </Card>
                     </div>
 
-                    <div className="bg-muted p-4 rounded space-y-2 text-sm">
-                      <p className="font-semibold">چگونه امتیاز کسب کنم؟</p>
-                      <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                        <li>برای هر نظر تایید شده، 100 امتیاز کسب کنید</li>
-                        <li>هر 1 امتیاز معادل 10 تومان تخفیف است</li>
-                        <li>می‌توانید امتیازات خود را هنگام پرداخت در مطب استفاده کنید</li>
+                    <div className="space-y-2 rounded bg-muted p-4 text-start text-sm">
+                      <p className="font-medium">قوانین</p>
+                      <ul className="list-inside list-disc space-y-1 text-muted-foreground">
+                        <li>نظر تاییدشده: ۱۰۰ امتیاز</li>
+                        <li>۱ امتیاز ≈ ۱۰ تومان تخفیف</li>
+                        <li>مصرف در پرداخت مطب</li>
                       </ul>
                     </div>
 
-                    <div className="bg-primary/10 border border-primary rounded p-4">
+                    <div className="rounded border border-primary bg-primary/10 p-4 text-start">
                       <p className="text-sm">
-                        <span className="font-semibold">ارزش فعلی امتیازات شما:</span>
-                        <span className="mr-2">{(patient.points * 10).toLocaleString()} تومان</span>
+                        <span className="font-medium">ارزش موجود: </span>
+                        <span className="tabular-nums">{(patient.points * 10).toLocaleString('fa-IR')} تومان</span>
                       </p>
                     </div>
                   </>

@@ -1,0 +1,3 @@
+/** Shared tab trigger look: pricing + gallery (flat, bordered, clear active state). */
+export const MARKETING_TAB_TRIGGER_CLASS =
+  'h-11 min-h-11 w-full cursor-pointer rounded-lg border border-border bg-background px-2 text-xs font-medium text-muted-foreground shadow-none transition-[color,background-color,border-color] duration-200 hover:border-primary/35 hover:bg-muted/30 hover:text-foreground focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:font-semibold data-[state=active]:text-primary sm:px-3 sm:text-sm'

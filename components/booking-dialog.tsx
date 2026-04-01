@@ -295,13 +295,13 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
         {/* Step 1: Choose clinic */}
         {step === 'clinic' && (
           <div className="p-5 space-y-3">
-            <p className="text-sm text-muted-foreground">لطفا مطب مورد نظر را انتخاب کنید:</p>
+            <p className="text-sm text-muted-foreground">انتخاب مطب</p>
             {(Object.entries(CLINICS) as [Clinic, typeof CLINICS.tehran][]).map(([key, clinic]) => (
               <button
                 key={key}
                 type="button"
                 onClick={() => handleClinicSelect(key)}
-                className="w-full text-right p-4 rounded-lg border-2 border-border bg-card transition-all hover:border-primary hover:bg-primary/5"
+                className="w-full text-start rounded-lg border-2 border-border bg-muted/30 p-4 transition-all hover:border-primary hover:bg-primary/5"
               >
                 <p className="font-bold text-base text-foreground">{clinic.label}</p>
                 <p className="text-xs mt-1 text-primary">{clinic.daysLabel}</p>
@@ -324,16 +324,16 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
             </div>
 
             <div className="flex items-center justify-between mb-3">
-              <button type="button" onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-lg font-bold text-foreground">›</button>
+              <button type="button" onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-lg font-bold text-foreground">‹</button>
               <span className="font-bold text-base text-foreground">
                 {JALALI_MONTHS[calMonth - 1]} {toFarsiNumber(calYear)}
               </span>
-              <button type="button" onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-lg font-bold text-foreground">‹</button>
+              <button type="button" onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-lg font-bold text-foreground">›</button>
             </div>
 
-            <div className="grid grid-cols-7 mb-1">
+            <div className="mb-1 grid grid-cols-7">
               {JALALI_WEEKDAYS.map(d => (
-                <div key={d} className="text-center text-xs font-semibold py-1 text-muted-foreground">{d}</div>
+                <div key={d} className="py-1 text-start text-xs font-semibold text-muted-foreground">{d}</div>
               ))}
             </div>
 
@@ -364,7 +364,7 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
             </div>
 
             {selectedDate && (
-              <div className="mt-4 p-3 rounded-lg text-sm text-center font-semibold bg-muted text-primary">
+              <div className="mt-4 rounded-lg bg-muted p-3 text-start text-sm font-semibold text-primary">
                 {getSelectedDateLabel()}
               </div>
             )}
@@ -392,7 +392,7 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
               </span>
             </div>
 
-            <p className="text-xs text-muted-foreground mb-3 text-center">ساعت مورد نظر را انتخاب کنید:</p>
+            <p className="mb-3 text-xs text-muted-foreground">انتخاب ساعت</p>
 
             <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
               {CLINICS[selectedClinic].timeSlots.map((slot) => {
@@ -403,10 +403,10 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
                     type="button"
                     onClick={() => setSelectedTime(slot)}
                     className={[
-                      'py-2 px-1 rounded-lg text-sm font-medium border-2 transition-all text-center',
+                      'rounded-lg border-2 px-1 py-2 text-center text-sm font-medium tabular-nums transition-all',
                       isSelectedTime
                         ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-border bg-card text-foreground hover:border-primary hover:bg-primary/5',
+                        : 'border-border bg-muted/30 text-foreground hover:border-primary hover:bg-primary/5',
                     ].join(' ')}
                   >
                     {toFarsiNumber(slot)}
@@ -416,8 +416,8 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
             </div>
 
             {selectedTime && (
-              <div className="mt-4 p-3 rounded-lg text-sm text-center font-semibold bg-muted text-primary">
-                {getSelectedDateLabel()} — ساعت {toFarsiNumber(selectedTime)}
+              <div className="mt-4 rounded-lg bg-muted p-3 text-start text-sm font-semibold text-primary">
+                {getSelectedDateLabel()} — {toFarsiNumber(selectedTime)}
               </div>
             )}
 
@@ -427,7 +427,7 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
               disabled={!selectedTime}
               className="w-full mt-4"
             >
-              تایید و ادامه رزرو
+              تایید رزرو
             </Button>
           </div>
         )}

@@ -4,27 +4,18 @@ import './globals.css'
 import { iranYekanX } from '@/app/fonts/iran-yekan-x'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/toaster'
+import { SITE_TITLE } from '@/lib/site-brand'
 
 export const metadata: Metadata = {
-  title: 'مطب درماتولوژی دکتر مریم',
-  description: 'سیستم رزرو آنلاین نوبت و خدمات درماتولوژی',
+  title: {
+    default: SITE_TITLE,
+    template: `%s | ${SITE_TITLE}`,
+  },
+  description: 'رزرو آنلاین نوبت — خدمات تخصصی پوست و مو، دکتر مریم حاجی‌بابایی',
   generator: 'v0.app',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: '/logo.png',
+    apple: '/logo.png',
   },
 }
 
@@ -34,8 +25,14 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="fa" dir="rtl" suppressHydrationWarning className={iranYekanX.variable}>
-      <body className="font-sans antialiased">
+    <html
+      lang="fa"
+      dir="rtl"
+      suppressHydrationWarning
+      className={iranYekanX.variable}
+      data-scroll-behavior="smooth"
+    >
+      <body className="font-sans antialiased" dir="rtl" lang="fa">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           {children}
           <Toaster />

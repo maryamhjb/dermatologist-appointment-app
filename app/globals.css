@@ -6,9 +6,10 @@
 @theme inline {
   --color-background: oklch(0.98 0.01 80);
   --color-foreground: oklch(0.2 0 0);
-  --color-card: oklch(1 0 0);
+  /* Card = page surface (border defines blocks); popover a hair warmer/lighter for overlays */
+  --color-card: oklch(0.98 0.01 80);
   --color-card-foreground: oklch(0.2 0 0);
-  --color-popover: oklch(1 0 0);
+  --color-popover: oklch(0.99 0.011 80);
   --color-popover-foreground: oklch(0.2 0 0);
   --color-primary: oklch(0.35 0.13 22);
   --color-primary-foreground: oklch(0.98 0.01 80);
@@ -23,6 +24,14 @@
   --color-border: oklch(0.9 0.02 80);
   --color-input: oklch(0.9 0.02 80);
   --color-ring: oklch(0.35 0.13 22);
+  /* Warm yellow-gold (~84–86°): below ~90 avoids green shift; above ~80 avoids heavy orange */
+  --color-brand-gold: oklch(0.68 0.09 84);
+  /* Header surname — bright but still clearly gold, not chartreuse */
+  --color-brand-gold-bright: oklch(0.78 0.095 86);
+  --color-brand-gold-foreground: oklch(0.28 0.04 55);
+  --color-brand-gold-muted: oklch(0.91 0.03 85);
+  /* Deeper bronze-gold for small UI text on cream (readable vs. thin logo gold) */
+  --color-brand-gold-deep: oklch(0.44 0.1 58);
   --radius-sm: 0.25rem;
   --radius-md: 0.375rem;
   --radius-lg: 0.5rem;
@@ -31,13 +40,44 @@
   --font-mono: ui-monospace, monospace;
 }
 
+/* Inline axis: start = right, end = left. Pair with <html lang="fa" dir="rtl">. */
 html {
   direction: rtl;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
   background-color: oklch(0.98 0.01 80);
   color: oklch(0.2 0 0);
   font-family: var(--font-iran-yekan-x), system-ui, -apple-system, sans-serif;
+  /* With dir=rtl, start = right; explicit so blocks don’t pick up left alignment from UA/legacy CSS */
+  text-align: start;
 }
 
+/* Clickable controls: consistent pointer (covers native <button>, Radix triggers, etc.) */
+@layer base {
+  button:not(:disabled):not([disabled]),
+  [role='button']:not([disabled]):not([aria-disabled='true']),
+  input[type='button']:not(:disabled):not([disabled]),
+  input[type='submit']:not(:disabled):not([disabled]),
+  input[type='reset']:not(:disabled):not([disabled]) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  button[disabled],
+  [role='button'][disabled],
+  [role='button'][aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
+  a[href]:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+}

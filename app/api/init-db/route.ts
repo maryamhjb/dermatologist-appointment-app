@@ -1,11 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
+/**
+ * Prefer applying schema with Postgres (matches repo and RLS for admins):
+ *   psql "$POSTGRES_URL_NON_POOLING" -v ON_ERROR_STOP=1 -f scripts/migrate_to_app_schema.sql
+ * The `exec` RPC below is not available on default Supabase projects; this route remains for
+ * reference / optional office re-seed when tables already exist.
+ */
 export async function POST() {
   try {
     const supabase = await createClient()
 
-    // Create tables with RLS
     const { error: schemaError } = await supabase.rpc('exec', {
       sql: `
         -- OFFICES

@@ -26,14 +26,14 @@ export function ProceduresList() {
   }, [])
 
   if (loading) {
-    return <div className="text-center py-8">درحال بارگذاری...</div>
+    return <div className="py-8 text-start text-sm text-muted-foreground">در حال بارگذاری…</div>
   }
 
   // Group by category
   const categories = [...new Set(procedures.map(p => p.category))]
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 text-start">
       {categories.map((category) => {
         const categoryProcs = procedures.filter(p => p.category === category)
         return (
@@ -62,7 +62,7 @@ export function ProceduresList() {
                           {proc.duration_minutes} دقیقه
                         </Badge>
                       </div>
-                      <div className="text-right">
+                      <div className="text-end">
                         <p className="text-2xl font-bold text-primary">
                           {(proc.price / 1000000).toFixed(1)}
                         </p>
