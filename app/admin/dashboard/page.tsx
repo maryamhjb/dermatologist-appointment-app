@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useToast } from '@/hooks/use-toast'
 import { PortalHeader } from '@/components/layout/portal-header'
 
 export default function AdminDashboardPage() {
@@ -16,7 +15,6 @@ export default function AdminDashboardPage() {
   const [comments, setComments] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-  const { toast } = useToast()
   const supabase = createClient()
 
   useEffect(() => {
@@ -28,11 +26,16 @@ export default function AdminDashboardPage() {
         return
       }
 
-      const { data: adminUser } = await supabase
-        .from('admin_users')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle()
+      let adminUser: Record<string, unknown> | null = null
+      try {
+        const res = await fetch('/api/me/admin', { cache: 'no-store' })
+        if (res.ok) {
+          const body = (await res.json()) as { admin?: Record<string, unknown> | null }
+          adminUser = body.admin ?? null
+        }
+      } catch {
+        adminUser = null
+      }
 
       if (!adminUser) {
         router.push('/dashboard')

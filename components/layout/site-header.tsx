@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu } from 'lucide-react'
@@ -17,7 +17,8 @@ import {
 } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 import { SITE_CONTAINER } from '@/lib/layout/site-layout'
-import { PUBLIC_AUTH_LINK, PUBLIC_MAIN_NAV } from '@/lib/navigation/public-nav'
+import { PUBLIC_AUTH_LINK, PUBLIC_DASHBOARD_LINK, PUBLIC_MAIN_NAV } from '@/lib/navigation/public-nav'
+import { createClient } from '@/lib/supabase/client'
 
 function useActivePath() {
   const pathname = usePathname()
@@ -67,7 +68,21 @@ function DesktopAuthLink({ href, label, active }: { href: string; label: string;
 
 export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [loggedIn, setLoggedIn] = useState<boolean | undefined>(undefined)
   const isActive = useActivePath()
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getSession().then(({ data: { session } }) => setLoggedIn(!!session?.user))
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => setLoggedIn(!!session?.user))
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const authHref = loggedIn ? PUBLIC_DASHBOARD_LINK.href : PUBLIC_AUTH_LINK.href
+  const authLabel = loggedIn ? PUBLIC_DASHBOARD_LINK.label : PUBLIC_AUTH_LINK.label
+  const authShortLabel = loggedIn ? PUBLIC_DASHBOARD_LINK.shortLabel : PUBLIC_AUTH_LINK.shortLabel
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background text-start">
@@ -89,22 +104,33 @@ export function SiteHeader() {
             />
           ))}
           <span className="mx-1 hidden h-6 w-px bg-border/80 lg:block" aria-hidden />
-          <DesktopAuthLink
-            href={PUBLIC_AUTH_LINK.href}
-            label={PUBLIC_AUTH_LINK.label}
-            active={isActive(PUBLIC_AUTH_LINK.href)}
-          />
+          {loggedIn === undefined ? (
+            <span
+              className="inline-flex min-h-10 min-w-22 items-center justify-center rounded-lg border border-transparent bg-muted/40 px-4"
+              aria-hidden
+            />
+          ) : (
+            <DesktopAuthLink
+              href={authHref}
+              label={authLabel}
+              active={loggedIn ? isActive(PUBLIC_DASHBOARD_LINK.href) : isActive(PUBLIC_AUTH_LINK.href)}
+            />
+          )}
         </nav>
 
         <div className="flex items-center gap-2 md:hidden">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-10 shrink-0 rounded-lg border-primary/20 px-4 text-sm font-semibold text-primary hover:bg-primary/5"
-            asChild
-          >
-            <Link href={PUBLIC_AUTH_LINK.href}>{PUBLIC_AUTH_LINK.shortLabel}</Link>
-          </Button>
+          {loggedIn === undefined ? (
+            <span className="h-10 w-18 shrink-0 rounded-lg bg-muted/40" aria-hidden />
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 shrink-0 rounded-lg border-primary/20 px-4 text-sm font-semibold text-primary hover:bg-primary/5"
+              asChild
+            >
+              <Link href={authHref}>{authShortLabel}</Link>
+            </Button>
+          )}
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>
               <Button
@@ -131,7 +157,10 @@ export function SiteHeader() {
             >
               <SheetHeader className="border-b border-border/60 px-5 pb-4 pt-6 text-start">
                 <SheetTitle className="text-start text-base font-semibold tracking-tight">منوی سایت</SheetTitle>
-                <p className="text-start text-sm font-normal text-muted-foreground">صفحات اصلی و ورود</p>
+                <p className="text-start text-sm font-normal text-muted-foreground">
+                  صفحات اصلی
+                  {loggedIn === undefined ? '' : loggedIn ? ' و داشبورد' : ' و ورود'}
+                </p>
               </SheetHeader>
               <nav
                 id="site-mobile-nav"
@@ -154,14 +183,21 @@ export function SiteHeader() {
                   </SheetClose>
                 ))}
                 <div className="my-2 border-t border-border/60" />
-                <SheetClose asChild>
-                  <Link
-                    href={PUBLIC_AUTH_LINK.href}
-                    className="flex min-h-12 items-center justify-center rounded-xl border border-primary/25 bg-primary/5 px-4 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
-                  >
-                    {PUBLIC_AUTH_LINK.label}
-                  </Link>
-                </SheetClose>
+                {loggedIn === undefined ? (
+                  <div
+                    className="flex min-h-12 items-center justify-center rounded-xl bg-muted/50 px-4"
+                    aria-hidden
+                  />
+                ) : (
+                  <SheetClose asChild>
+                    <Link
+                      href={authHref}
+                      className="flex min-h-12 items-center justify-center rounded-xl border border-primary/25 bg-primary/5 px-4 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
+                    >
+                      {authLabel}
+                    </Link>
+                  </SheetClose>
+                )}
               </nav>
             </SheetContent>
           </Sheet>
