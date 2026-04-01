@@ -37,7 +37,7 @@ const CLINICS: Record<Clinic, {
 }> = {
   tehran: {
     label: 'کلینیک تهران',
-    days: [0, 1, 2, 3, 4, 5, 6], // TEST: All days enabled to debug
+    days: [3], // Wednesday: JS getDay() 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
     daysLabel: 'چهارشنبه‌ها',
     address: 'سعادت آباد - بلوار کوهستان - رو به روی اوپال - پلاک ۱۱',
     phone: '۰۹۳۰۳۰۱۹۱۰۹',
@@ -47,7 +47,7 @@ const CLINICS: Record<Clinic, {
     label: 'مطب کرج',
     days: [6, 0, 2], // Saturday=6, Sunday=0, Tuesday=2
     daysLabel: 'شنبه، یکشنبه و سه‌شنبه',
-    address: 'چهاراه طالقانی به سمت میدان شهدا - برج آراد - طبقه هشتم - واحد ۸۰۳',
+    address: 'چهارراه طالقانی به سمت میدان شهدا - برج آراد - طبقه هشتم - واحد ۸۰۳',
     phone: '۰۹۹۱۱۳۲۰۰۳۰',
     timeSlots: generateTimeSlots('09:00', '13:00', 15),
   },
@@ -60,10 +60,20 @@ const JALALI_MONTHS = [
 
 const JALALI_WEEKDAYS = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج']
 
-const DAY_NAMES = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه']
-
 function toFarsiNumber(n: number | string): string {
   return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[+d])
+}
+
+// Converts a Jalali date to an integer "day number" for easy comparison
+// Uses a simple formula: days since a fixed epoch
+function jalaliDayNumber(jy: number, jm: number, jd: number): number {
+  // Convert to a flat day count within the Jalali calendar
+  // Months 1-6 have 31 days, months 7-11 have 30 days, month 12 has 29/30
+  let days = (jy - 1) * 365 + Math.floor((jy - 1) / 4) + jd
+  for (let m = 1; m < jm; m++) {
+    days += m <= 6 ? 31 : 30
+  }
+  return days
 }
 
 // Jalali to Gregorian conversion
@@ -139,24 +149,29 @@ function jalaliMonthLength(jy: number, jm: number): number {
 }
 
 export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
+  // Compute today's Jalali date once using the client's local date
+  function getTodayJalali() {
+    const now = new Date()
+    return gregorianToJalali(now.getFullYear(), now.getMonth() + 1, now.getDate())
+  }
+
+  const todayJ = getTodayJalali()
+  const todayDayNum = jalaliDayNumber(todayJ.jy, todayJ.jm, todayJ.jd)
+
   const [step, setStep] = useState<'clinic' | 'date' | 'time'>('clinic')
   const [selectedClinic, setSelectedClinic] = useState<Clinic | null>(null)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
-
-  const todayGreg = new Date()
-  todayGreg.setHours(0, 0, 0, 0)
-  const todayJalali = gregorianToJalali(todayGreg.getFullYear(), todayGreg.getMonth() + 1, todayGreg.getDate())
-  
-  const [calYear, setCalYear] = useState(todayJalali.jy)
-  const [calMonth, setCalMonth] = useState(todayJalali.jm)
+  const [calYear, setCalYear] = useState(todayJ.jy)
+  const [calMonth, setCalMonth] = useState(todayJ.jm)
 
   function handleClinicSelect(clinic: Clinic) {
     setSelectedClinic(clinic)
     setSelectedDate(null)
     setSelectedTime(null)
-    setCalYear(todayJalali.jy)
-    setCalMonth(todayJalali.jm)
+    const fresh = getTodayJalali()
+    setCalYear(fresh.jy)
+    setCalMonth(fresh.jm)
     setStep('date')
   }
 
@@ -177,16 +192,18 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
 
   function isAvailable(jd: number): boolean {
     if (!selectedClinic) return false
+
+    // Compare using Jalali day numbers to avoid any Gregorian/timezone issues
+    const dayNum = jalaliDayNumber(calYear, calMonth, jd)
+    const endDayNum = todayDayNum + 56
+
+    if (dayNum < todayDayNum || dayNum > endDayNum) return false
+
+    // Get day of week using Gregorian conversion with local Date at noon
     const { gy, gm, gd } = jalaliToGregorian(calYear, calMonth, jd)
-    // Use local date (noon) to avoid DST boundary issues with getDay()
-    const greg = new Date(gy, gm - 1, gd, 12, 0, 0)
-    const todayNoon = new Date(todayGreg.getFullYear(), todayGreg.getMonth(), todayGreg.getDate(), 12, 0, 0)
-    const endDate = new Date(todayNoon)
-    endDate.setDate(endDate.getDate() + 56)
-    
-    if (greg < todayNoon || greg > endDate) return false
-    // getDay(): 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
-    return CLINICS[selectedClinic].days.includes(greg.getDay())
+    const jsDay = new Date(gy, gm - 1, gd, 12, 0, 0).getDay()
+
+    return CLINICS[selectedClinic].days.includes(jsDay)
   }
 
   function isSelected(jd: number): boolean {
@@ -194,16 +211,17 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
   }
 
   function isToday(jd: number): boolean {
-    return calYear === todayJalali.jy && calMonth === todayJalali.jm && jd === todayJalali.jd
+    return calYear === todayJ.jy && calMonth === todayJ.jm && jd === todayJ.jd
   }
 
   // Build calendar grid
   function buildGrid() {
     const daysInMonth = jalaliMonthLength(calYear, calMonth)
     const { gy, gm, gd } = jalaliToGregorian(calYear, calMonth, 1)
-    // Use local noon to avoid DST issues
     const firstDow = new Date(gy, gm - 1, gd, 12, 0, 0).getDay()
-    // Convert JS day (0=Sun..6=Sat) to Jalali week col (0=Sat..6=Fri)
+    // JS getDay(): 0=Sun..6=Sat. Jalali week starts Saturday (col 0).
+    // Sat=6 → col 0, Sun=0 → col 1, Mon=1 → col 2, Tue=2 → col 3,
+    // Wed=3 → col 4, Thu=4 → col 5, Fri=5 → col 6
     const jalaliDow = firstDow === 6 ? 0 : firstDow + 1
     const cells: (number | null)[] = Array(jalaliDow).fill(null)
     for (let d = 1; d <= daysInMonth; d++) cells.push(d)
@@ -217,8 +235,9 @@ export function BookingDialog({ open, onOpenChange }: BookingDialogProps) {
     if (!selectedDate) return ''
     const [y, m, d] = selectedDate.split('/').map(Number)
     const { gy, gm, gd } = jalaliToGregorian(y, m, d)
-    const greg = new Date(Date.UTC(gy, gm - 1, gd))
-    return `${DAY_NAMES[greg.getUTCDay()]} ${toFarsiNumber(d)} ${JALALI_MONTHS[m - 1]} ${toFarsiNumber(y)}`
+    const dow = new Date(gy, gm - 1, gd, 12, 0, 0).getDay()
+    const dayNames = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه']
+    return `${dayNames[dow]} ${toFarsiNumber(d)} ${JALALI_MONTHS[m - 1]} ${toFarsiNumber(y)}`
   }
 
   function handleConfirmDate() {
